@@ -1,7 +1,5 @@
 // @flow
-/* globals ReactClass */
-
-import React from 'react'
+import React, { type ComponentType } from 'react'
 import PropTypes from 'prop-types'
 import hoistStatics from 'hoist-non-react-statics'
 import {
@@ -12,17 +10,20 @@ import {
 import _isStyledComponent from '../utils/isStyledComponent'
 import determineTheme from '../utils/determineTheme'
 
-const wrapWithTheme = (Component: ReactClass<any>) => {
+const wrapWithTheme = (Component: ComponentType<any>) => {
   const componentName = Component.displayName || Component.name || 'Component'
+  const isStatelessFunctionalComponent =
+    typeof Component === 'function' &&
+    // $FlowFixMe TODO: flow for prototype
+    !(Component.prototype && 'isReactComponent' in Component.prototype)
 
+  // NOTE: We can't pass a ref to a stateless functional component
   const shouldSetInnerRef =
-    _isStyledComponent(Component) ||
-    // NOTE: We can't pass a ref to a stateless functional component
-    (typeof Component === 'function' &&
-      !(Component.prototype && 'isReactComponent' in Component.prototype))
+    _isStyledComponent(Component) || isStatelessFunctionalComponent
 
-  class WithTheme extends React.Component {
+  class WithTheme extends React.Component<*, *> {
     static displayName = `WithTheme(${componentName})`
+    static defaultProps: Object
 
     // NOTE: This is so that isStyledComponent passes for the innerRef unwrapping
     static styledComponentId = 'withTheme'
@@ -46,7 +47,7 @@ const wrapWithTheme = (Component: ReactClass<any>) => {
       ) {
         // eslint-disable-next-line no-console
         console.warn(
-          '[withTheme] You are not using a ThemeProvider nor passing a theme prop or a theme in defaultProps',
+          '[withTheme] You are not using a ThemeProvider nor passing a theme prop or a theme in defaultProps'
         )
       } else if (styledContext === undefined && themeProp !== undefined) {
         this.setState({ theme: themeProp })
@@ -78,18 +79,17 @@ const wrapWithTheme = (Component: ReactClass<any>) => {
     }
 
     render() {
-      // eslint-disable-next-line react/prop-types
-      const { innerRef } = this.props
-      const { theme } = this.state
+      const props = {
+        theme: this.state.theme,
+        ...this.props,
+      }
 
-      return (
-        <Component
-          theme={theme}
-          {...this.props}
-          innerRef={shouldSetInnerRef ? innerRef : undefined}
-          ref={shouldSetInnerRef ? undefined : innerRef}
-        />
-      )
+      if (!shouldSetInnerRef) {
+        props.ref = props.innerRef
+        delete props.innerRef
+      }
+
+      return <Component {...props} />
     }
   }
 
