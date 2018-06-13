@@ -1,8 +1,10 @@
-.App {
+* {
   box-sizing: border-box;
 }
 
-
+.App {
+  box-sizing: border-box;
+}
 
 a{
   text-decoration: none;
