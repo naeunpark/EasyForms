@@ -8,10 +8,17 @@ router.get('/', function(req, res, next) {
 
 
 /* GET about page. */
-router.get('/about', function(req, res, next) {
-  res.render('index', { title: 'about' });
-});
+// router.get('/about', function(req, res, next) {
+//   res.render('index', { title: 'about' });
+// });
 
+/* GET about page. */
+router.get('/about', function(req, res, next) {
+  res.locals.connection.query('select * from about', function (error, results, fields) {
+    if(error) throw error;
+    res.send(JSON.stringify(results));
+  });
+});
 
 
 module.exports = router;

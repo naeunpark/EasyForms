@@ -13,15 +13,12 @@ router.get('/', function(req, res, next) {
 });
 
 /* GET users listing. */
-//users/about
+//api/about
 router.get('/about', function(req, res, next) {
-  res.json([{
-    id: 3,
-    username: "sophia"
-  }, {
-    id: 4,
-    username: "Jenny"
-  }]);
+  res.locals.connection.query('select * from about', function (error, results, fields) {
+    if(error) throw error;
+    res.send(JSON.stringify(results));
+  });
 });
 
 module.exports = router;

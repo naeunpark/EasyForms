@@ -13,6 +13,20 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+//Database connection
+var mysql = require("mysql")
+
+app.use(function(req, res, next){
+	res.locals.connection = mysql.createConnection({
+		host     : 'localhost',
+		user     : 'root',
+		password : '',
+		database : 'easyforms'
+	});
+	res.locals.connection.connect();
+	next();
+});
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
